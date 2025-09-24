@@ -12,7 +12,7 @@ ASP.NET Core MVC app that shows NBA team stats from a SQL Server stored procedur
    ```bash
    dotnet run
    ```
-   Open browser → navigate to the URL printed in the console (by default https://localhost:7249/Teams)
+   Open browser → navigate to the URL printed in the console
 
 ## Stored Procedure
 
