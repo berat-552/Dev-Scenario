@@ -1,0 +1,151 @@
+﻿@model List<NbaSummary.Models.TeamSummaryDto>
+
+<div class="p-4 sm:p-6">
+    <h1 class="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">NBA Team Summary</h1>
+    <p class="text-xs text-gray-500 mb-3 sm:hidden">Tip: tap “More” to see extra stats.</p>
+
+    <div class="overflow-x-auto rounded-lg border">
+        <table id="teamsTable" class="min-w-full text-xs sm:text-sm">
+            <thead class="border-b bg-gray-50">
+                <tr class="text-left">
+                    <th class="p-2 sticky left-0 bg-gray-50 z-10">Team</th>
+                    <th class="p-2 hidden md:table-cell">Stadium</th>
+                    <th class="p-2 hidden sm:table-cell">Logo</th>
+                    <th class="p-2 hidden md:table-cell">MVP</th>
+                    <th class="p-2">Played</th>
+                    <th class="p-2">Won</th>
+                    <th id="lostHeader"
+                        class="p-2 font-semibold text-blue-600 underline cursor-pointer hover:bg-blue-50 hover:text-blue-800 transition">
+                        Lost
+                    </th>
+                    <th class="p-2 hidden lg:table-cell">Home</th>
+                    <th class="p-2 hidden lg:table-cell">Away</th>
+                    <th class="p-2 hidden xl:table-cell">Biggest Win</th>
+                    <th class="p-2 hidden xl:table-cell">Biggest Loss</th>
+                    <th class="p-2 hidden xl:table-cell">Last Game Stadium</th>
+                    <th class="p-2 hidden md:table-cell">Last Game Date</th>
+                    <th class="p-2 sm:hidden">More</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr class="border-b align-top">
+                        <!-- Team (sticky on wide screens) + compact layout -->
+                        <td class="p-2 sticky left-0 bg-white z-10">
+                            <div class="flex items-center gap-2">
+                                @if (!string.IsNullOrWhiteSpace(t.TeamLogo))
+                                {
+                                    <img src="@t.TeamLogo"
+                                         alt="@t.TeamName logo"
+                                         class="h-6 w-6 sm:h-8 sm:w-8 object-contain flex-shrink-0"
+                                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span class=&quot;text-gray-500 italic&quot;>No Icon</span>');" />
+                                }
+                                else
+                                {
+                                    <span class="px-1.5 py-0.5 text-[10px] sm:text-xs rounded bg-gray-200 text-gray-600">No Icon</span>
+                                }
+                                <span class="font-medium">@t.TeamName</span>
+                            </div>
+                        </td>
+
+                        <td class="p-2 hidden md:table-cell">@t.TeamStadiumName</td>
+
+                        <td class="p-2 hidden sm:table-cell">
+                            @if (!string.IsNullOrWhiteSpace(t.TeamLogo))
+                            {
+                                <img src="@t.TeamLogo"
+                                     alt="@t.TeamName logo"
+                                     class="h-6 w-6 sm:h-8 sm:w-8 object-contain"
+                                     onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span class=&quot;text-gray-500 italic&quot;>No Icon</span>');" />
+                            }
+                            else
+                            {
+                                <span class="px-1.5 py-0.5 text-[10px] sm:text-xs rounded bg-gray-200 text-gray-600">No Icon</span>
+                            }
+                        </td>
+
+                        <td class="p-2 hidden md:table-cell">@t.SeasonMvpOnTeam</td>
+
+                        <td class="p-2">@t.NumberOfGamesPlayed</td>
+                        <td class="p-2 won">@t.NumberOfGamesWon</td>
+                        <td class="p-2 lost">@t.NumberOfGamesLost</td>
+
+                        <td class="p-2 hidden lg:table-cell">@t.NumberPlayedHome</td>
+                        <td class="p-2 hidden lg:table-cell">@t.NumberPlayedAway</td>
+                        <td class="p-2 hidden xl:table-cell">@t.PointsInBiggestWin</td>
+                        <td class="p-2 hidden xl:table-cell">@t.PointsInBiggestLoss</td>
+                        <td class="p-2 hidden xl:table-cell">@t.LastGameStadiumName</td>
+                        <td class="p-2 hidden md:table-cell">@t.LastGameDate.ToString("yyyy-MM-dd")</td>
+
+                        <!-- Mobile “More” -->
+                        <td class="p-2 sm:hidden">
+                            <details class="group">
+                                <summary class="cursor-pointer select-none text-blue-600 underline">More</summary>
+                                <div class="mt-2 space-y-1 text-[11px] text-gray-700">
+                                    <div><span class="font-medium">Stadium:</span> @t.TeamStadiumName</div>
+                                    <div><span class="font-medium">MVP:</span> @t.SeasonMvpOnTeam</div>
+                                    <div><span class="font-medium">Home:</span> @t.NumberPlayedHome</div>
+                                    <div><span class="font-medium">Away:</span> @t.NumberPlayedAway</div>
+                                    <div><span class="font-medium">Biggest Win:</span> @t.PointsInBiggestWin</div>
+                                    <div><span class="font-medium">Biggest Loss:</span> @t.PointsInBiggestLoss</div>
+                                    <div><span class="font-medium">Last Stadium:</span> @t.LastGameStadiumName</div>
+                                    <div><span class="font-medium">Last Game Date:</span> @t.LastGameDate.ToString("yyyy-MM-dd")</div>
+                                </div>
+                            </details>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6">
+        <div class="w-full h-64 md:h-80 xl:h-96">
+            <canvas id="wonLostChart"></canvas>
+        </div>
+        <p class="text-xs mt-2">Tip: click the <span class="text-blue-600 underline">Lost</span> header to toggle the chart.</p>
+    </div>
+</div>
+
+<script>
+    const rows   = Array.from(document.querySelectorAll('#teamsTable tbody tr'));
+    const labels = rows.map(r => r.querySelector('td').innerText.trim());
+    const won    = rows.map(r => parseInt(r.querySelector('.won').textContent));
+    const lost   = rows.map(r => parseInt(r.querySelector('.lost').textContent));
+
+    const ctx = document.getElementById('wonLostChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'Won', data: won }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true }
+        },
+        scales: {
+          x: {
+            ticks: { maxRotation: 45, minRotation: 0 }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+
+    // Toggle chart on Lost header click
+    document.getElementById('lostHeader').addEventListener('click', () => {
+      const ds = chart.data.datasets[0];
+      const showingWon = ds.label === 'Won';
+      ds.label = showingWon ? 'Lost' : 'Won';
+      ds.data  = showingWon ? lost : won;
+      chart.update();
+    });
+</script>
